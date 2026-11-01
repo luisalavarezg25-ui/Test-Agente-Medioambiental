@@ -37,8 +37,10 @@ self.addEventListener("fetch", e => {
   }
   if (url.origin !== self.location.origin) return;
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(CORE).then(x => x.put("index.html", c)); return r; })
-      .catch(() => caches.match("index.html")));
+    e.respondWith(fetch(req).then(async r => {
+      if (!r.ok) return (await caches.match("index.html")) || r;
+      const c = r.clone(); caches.open(CORE).then(x => x.put("index.html", c)); return r;
+    }).catch(() => caches.match("index.html")));
     return;
   }
   e.respondWith(caches.match(req, {ignoreSearch: true}).then(hit => hit || fetch(req).then(r => {
